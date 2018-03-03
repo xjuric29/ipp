@@ -1,0 +1,4 @@
+
+#
+# alahu
+MOVE GF@counter string@ # Inicializace proměnné na prázdný řetězec

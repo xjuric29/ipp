@@ -1,0 +1,16 @@
+correct:
+int@+2
+int@2
+int@-2
+int@454651354651321354654321343543
+bool@true
+bool@false
+
+
+incorrect:
+int@--2
+InT@4
+int@4a
+bool@False
+Bool@TRUE
+bool@truea

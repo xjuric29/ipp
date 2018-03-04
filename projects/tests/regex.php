@@ -22,9 +22,11 @@
 
 #echo "a"."b" . "\n" . "4";
 
-$word = "string@jksaadlkf\\124\\12";
-echo $word, "\n";
-echo preg_match("~(\\\\[0-9]{0,2}($|\p{L}|\p{M}|\p{S}|\p{P}\p{Z}|\p{C}| )|\\\\[0-9]{4,})~u", $word);
+#$word = "string@jksaadlkf\\124\\12";
+#echo $word, "\n";
+#echo preg_match("~(\\\\[0-9]{0,2}($|\p{L}|\p{M}|\p{S}|\p{P}\p{Z}|\p{C}| )|\\\\[0-9]{4,})~u", $word);
 
 
 #"~(\\[0-9]{0,2}($|\p{L}|\p{M}|\p{S}|\p{P}\p{Z}|\p{C}| )|\\[0-9]{4,})~u"
+
+if (20) echo "jo!\n";

@@ -66,7 +66,7 @@ $instructions = array(
     33 => "BREAK");
 
 # !!!!
-$STDIN = fopen("tests/input", "r");
+$STDIN = fopen("tests/input3", "r");
 #$STDIN = STDIN;
 
 # Main control structure
@@ -111,6 +111,8 @@ if (array_key_exists("c", $getOpts) || array_key_exists("comments", $getOpts)) $
 # If stats is used, comments or loc is required
 if (($statsShort || $statsLong) && !$locFlag && !$commentsFlag) exit(badParameter);
 
+if (($statsShort || $statsLong) && ($statsFile = fopen($fileName, "w")) == false) exit(outFileError);
+
 $verbose = false;   # Own debug parameter
 if (array_key_exists("v", $getOpts) || array_key_exists("verbose", $getOpts)) $verbose = true;
 
@@ -122,11 +124,22 @@ $comments = 0;
 
 syntaxer();
 
-echo $comments, $loc, "\n";
+# Write statistics
+if ($statsShort || $statsLong) {
+    if (($locOrder = array_search("--loc", $argv)) == false) $locOrder = array_search("-l", $argv);
+    if (($commentsOrder = array_search("--comments", $argv)) == false)
+        $commentsOrder  = array_search("-c", $argv);
 
-#var_dump($argv);
-#var_dump($getOpts);
-#echo $argc, "\n";
+    if ($locOrder && $commentsOrder && $locOrder < $commentsOrder) {
+        fwrite($statsFile, $loc . "\n");
+        fwrite($statsFile, $comments . "\n");
+    }
+    elseif ($locOrder && $commentsOrder && $locOrder > $commentsOrder) {
+        fwrite($statsFile, $comments . "\n");
+        fwrite($statsFile, $loc . "\n");
+    }
+    elseif ($locOrder) fwrite($statsFile, $loc . "\n");
+    elseif ($commentsOrder) fwrite($statsFile, $comments . "\n");
 
-
-
+    fclose($statsFile);
+}

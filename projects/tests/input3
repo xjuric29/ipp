@@ -1,0 +1,78 @@
+.ippcode18
+
+# Bez-operandové instrukce
+CREATEFRAME
+PUSHFRAME
+POPFRAME
+RETURN
+BREAK
+
+# Instrukce s jedním operandem var
+DEFVAR GF@promenna
+POPS LF@_123
+
+# Instrukce s jedním operandem var nebo const
+PUSHS   GF@promenna
+WRITE   GF@promenna
+DPRINT  GF@promenna
+#
+PUSHS       bool@true
+WRITE       bool@true
+DPRINT       bool@true
+
+# Instrukce s jedním operandem label
+CALL  call
+LABEL int
+JUMP  jakesi_pOjEbAnE_navesti
+
+# Instrukce s jedním operandem var a druhým var nebo const
+MOVE TF@PRom           TF@PRom
+NOT     TF@PRom TF@PRom
+INT2CHAR             TF@PRom TF@PRom
+STRLEN TF@PRom TF@PRom
+TYPE    TF@PRom TF@PRom
+#
+MOVE    TF@PRom string@\065\065
+NOT TF@PRom string@\065\065
+INT2CHAR    TF@PRom string@\065\065
+STRLEN  TF@PRom string@\065\065
+TYPE    TF@PRom string@\065\065
+
+# Instrukce s jedním operandem var a druhým type
+READ LF@%%% int
+
+# Instrukce s jedním operandem var a druhým a třetím var nebo const
+ADD GF@promenna GF@promenna GF@promenna
+SUB GF@promenna GF@promenna GF@promenna
+MUL GF@promenna GF@promenna GF@promenna
+IDIV GF@promenna GF@promenna GF@promenna
+LT GF@promenna GF@promenna GF@promenna
+GT GF@promenna GF@promenna GF@promenna
+EQ GF@promenna GF@promenna GF@promenna
+AND GF@promenna GF@promenna GF@promenna
+OR GF@promenna GF@promenna GF@promenna
+STRI2INT GF@promenna GF@promenna GF@promenna
+CONCAT GF@promenna GF@promenna GF@promenna
+GETCHAR GF@promenna GF@promenna GF@promenna
+SETCHAR GF@promenna GF@promenna GF@promenna
+#
+ADD GF@promenna bool@true bool@true
+SUB GF@promenna bool@true bool@true
+MUL GF@promenna bool@true bool@true
+IDIV GF@promenna bool@true bool@true
+LT GF@promenna bool@true bool@true
+GT GF@promenna bool@true bool@true
+EQ GF@promenna bool@true bool@true
+AND GF@promenna bool@true bool@true
+OR GF@promenna bool@true bool@true
+STRI2INT GF@promenna bool@true bool@true
+CONCAT GF@promenna bool@true bool@true
+GETCHAR GF@promenna bool@true bool@true
+SETCHAR GF@promenna bool@true bool@true
+
+# Instrukce s jedním operandem label a druhým a třetím var nebo const
+JUMPIFEQ label GF@promenna GF@promenna
+JUMPIFNEQ label GF@promenna GF@promenna
+#
+JUMPIFEQ label bool@true bool@true
+JUMPIFNEQ label bool@true bool@true

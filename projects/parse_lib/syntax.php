@@ -6,7 +6,15 @@
  */
 
 function syntaxer() {
+    global $instructions;
     global $loc;
+
+    # XML settings
+    $domtree = new DOMDocument('1.0', 'UTF-8');
+    $domtree->formatOutput = true;
+    $xmlRoot = $domtree->createElement("program");
+    $xmlRoot->setAttribute("language", "IPPcode18");
+    $xmlRoot = $domtree->appendChild($xmlRoot);
 
     $line = scanner();
     # If first is not header
@@ -26,6 +34,13 @@ function syntaxer() {
         }
         # Instructions checking
         elseif ($line[0][0] == tokenOpcode) {
+            $loc++;
+
+            # Creates element instruction
+            $xmlInstruction = $domtree->createElement("instruction");
+            $xmlInstruction->setAttribute("order", $loc);
+            $xmlInstruction->setAttribute("opcode", $instructions[$line[0][1]]);
+
             switch ($line[0][1]) {
                 # This instructions are without any operand
                 case 1:     # CREATEFRAME
@@ -33,10 +48,7 @@ function syntaxer() {
                 case 3:     # POPFRAME
                 case 6:     # RETURN
                 case 33:    # BREAK
-                    if (count($line) == 1) {
-
-                    }
-                    else {
+                    if (count($line) != 1) {
                         printLog("Syntaxer: bad operands " . $line[0][1] . "\n");
                         exit(lexicalSyntaxError);
                     }
@@ -45,7 +57,11 @@ function syntaxer() {
                 case 4:     # DEFVAR
                 case 8:     # POPS
                     if (count($line) == 2 && $line[1][0] == tokenVar) {
-
+                        # Sets first arg element
+                        $xmlArg1 = $domtree->createElement("arg1", htmlspecialchars($line[1][1]));
+                        $xmlArg1->setAttribute("type", "var");
+                        # Sets arg1 element as instruction child
+                        $xmlInstruction->appendChild($xmlArg1);
                     }
                     else {
                         printLog("Syntaxer: bad operands " . $line[0][1] . "\n");
@@ -57,7 +73,18 @@ function syntaxer() {
                 case 22:    # WRITE
                 case 32:    # DPRINT
                     if (count($line) == 2 && ($line[1][0] == tokenVar || $line[1][0] == tokenConst)) {
+                        # Sets first arg element
+                        if ($line[1][0] == tokenVar) {
+                            $xmlArg1 = $domtree->createElement("arg1", htmlspecialchars($line[1][1]));
+                            $xmlArg1->setAttribute("type", "var");
+                        }
+                        else {
+                            $xmlArg1 = $domtree->createElement("arg1", htmlspecialchars($line[1][2]));
+                            $xmlArg1->setAttribute("type", $line[1][1]);
+                        }
 
+                        # Sets arg1 element as instruction child
+                        $xmlInstruction->appendChild($xmlArg1);
                     }
                     else {
                         printLog("Syntaxer: bad operands " . $line[0][1] . "\n");
@@ -69,7 +96,11 @@ function syntaxer() {
                 case 28:    # LABEL
                 case 29:    # JUMP
                     if (count($line) == 2 && ($line[1][0] == tokenLabel || $line[1][0] == tokenLabelType)) {
-
+                        # Sets first arg element
+                        $xmlArg1 = $domtree->createElement("arg1", htmlspecialchars($line[1][1]));
+                        $xmlArg1->setAttribute("type", "label");
+                        # Sets arg1 element as instruction child
+                        $xmlInstruction->appendChild($xmlArg1);
                     }
                     else {
                         printLog("Syntaxer: bad operands " . $line[0][1] . "\n");
@@ -84,7 +115,22 @@ function syntaxer() {
                 case 27:    # TYPE
                     if (count($line) == 3 && $line[1][0] == tokenVar && ($line[2][0] == tokenVar ||
                             $line[2][0] == tokenConst)) {
+                        # Sets arg elements
+                        $xmlArg1 = $domtree->createElement("arg1", htmlspecialchars($line[1][1]));
+                        $xmlArg1->setAttribute("type", "var");
 
+                        if ($line[2][0] == tokenVar) {
+                            $xmlArg2 = $domtree->createElement("arg2", htmlspecialchars($line[2][1]));
+                            $xmlArg2->setAttribute("type", "var");
+                        }
+                        else {
+                            $xmlArg2 = $domtree->createElement("arg2", htmlspecialchars($line[2][2]));
+                            $xmlArg2->setAttribute("type", $line[2][1]);
+                        }
+
+                        # Sets arg elements as instruction childs
+                        $xmlInstruction->appendChild($xmlArg1);
+                        $xmlInstruction->appendChild($xmlArg2);
                     }
                     else {
                         printLog("Syntaxer: bad operands " . $line[0][1] . "\n");
@@ -94,7 +140,14 @@ function syntaxer() {
                 # One var operand and one type operand
                 case 21:    # READ
                     if (count($line) == 3 && $line[1][0] == tokenVar && $line[2][0] == tokenLabelType) {
-
+                        # Sets arg elements
+                        $xmlArg1 = $domtree->createElement("arg1", htmlspecialchars($line[1][1]));
+                        $xmlArg2 = $domtree->createElement("arg2", htmlspecialchars($line[2][1]));
+                        $xmlArg1->setAttribute("type", "var");
+                        $xmlArg2->setAttribute("type", "type");
+                        # Sets arg elements as instruction childs
+                        $xmlInstruction->appendChild($xmlArg1);
+                        $xmlInstruction->appendChild($xmlArg2);
                     }
                     else {
                         printLog("Syntaxer: bad operands " . $line[0][1] . "\n");
@@ -118,7 +171,31 @@ function syntaxer() {
                     if (count($line) == 4 && $line[1][0] == tokenVar && ($line[2][0] == tokenVar ||
                             $line[2][0] == tokenConst) && ($line[3][0] == tokenVar ||
                             $line[3][0] == tokenConst)) {
+                        # Sets arg elements
+                        $xmlArg1 = $domtree->createElement("arg1", htmlspecialchars($line[1][1]));
+                        $xmlArg1->setAttribute("type", "var");
 
+                        if ($line[2][0] == tokenVar) {
+                            $xmlArg2 = $domtree->createElement("arg2", htmlspecialchars($line[2][1]));
+                            $xmlArg2->setAttribute("type", "var");
+                        }
+                        else {
+                            $xmlArg2 = $domtree->createElement("arg2", htmlspecialchars($line[2][2]));
+                            $xmlArg2->setAttribute("type", $line[2][1]);
+                        }
+                        if ($line[3][0] == tokenVar) {
+                            $xmlArg3 = $domtree->createElement("arg3", htmlspecialchars($line[3][1]));
+                            $xmlArg3->setAttribute("type", "var");
+                        }
+                        else {
+                            $xmlArg3 = $domtree->createElement("arg3", htmlspecialchars($line[3][2]));
+                            $xmlArg3->setAttribute("type", $line[3][1]);
+                        }
+
+                        # Sets arg elements as instruction childs
+                        $xmlInstruction->appendChild($xmlArg1);
+                        $xmlInstruction->appendChild($xmlArg2);
+                        $xmlInstruction->appendChild($xmlArg3);
                     }
                     else {
                         printLog("Syntaxer: bad operands " . $line[0][1] . "\n");
@@ -131,7 +208,31 @@ function syntaxer() {
                     if (count($line) == 4 && ($line[1][0] == tokenLabel || $line[1][0] == tokenLabelType) &&
                         ($line[2][0] == tokenVar || $line[2][0] == tokenConst) && ($line[3][0] == tokenVar ||
                             $line[3][0] == tokenConst)) {
+                        # Sets arg elements
+                        $xmlArg1 = $domtree->createElement("arg1", htmlspecialchars($line[1][1]));
+                        $xmlArg1->setAttribute("type", "label");
 
+                        if ($line[2][0] == tokenVar) {
+                            $xmlArg2 = $domtree->createElement("arg2", htmlspecialchars($line[2][1]));
+                            $xmlArg2->setAttribute("type", "var");
+                        }
+                        else {
+                            $xmlArg2 = $domtree->createElement("arg2", htmlspecialchars($line[2][2]));
+                            $xmlArg2->setAttribute("type", $line[2][1]);
+                        }
+                        if ($line[3][0] == tokenVar) {
+                            $xmlArg3 = $domtree->createElement("arg3", htmlspecialchars($line[3][1]));
+                            $xmlArg3->setAttribute("type", "var");
+                        }
+                        else {
+                            $xmlArg3 = $domtree->createElement("arg3", htmlspecialchars($line[3][2]));
+                            $xmlArg3->setAttribute("type", $line[3][1]);
+                        }
+
+                        # Sets arg elements as instruction childs
+                        $xmlInstruction->appendChild($xmlArg1);
+                        $xmlInstruction->appendChild($xmlArg2);
+                        $xmlInstruction->appendChild($xmlArg3);
                     }
                     else {
                         printLog("Syntaxer: bad operands " . $line[0][1] . "\n");
@@ -144,12 +245,15 @@ function syntaxer() {
             }
 
             printLog("Syntaxer: instruction " . $line[0][1] . "\n");
-            $loc++;
         }
         # Another error
         else {
             printLog("Syntaxer: another error\n");
             exit(lexicalSyntaxError);
         }
+
+        $xmlRoot->appendChild($xmlInstruction);
     }
+
+    echo $domtree->saveXML();
 }

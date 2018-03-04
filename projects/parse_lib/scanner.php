@@ -42,13 +42,11 @@ function scanner() {
 
     # Getting line with code
     while (true) {
-        if (feof($STDIN)) { # If EOF
+        if (($rawLine = fgets($STDIN)) == false) { # If EOF
             printLog("Scanner: End of file occurs\n");
             array_push($result, array(tokenEOF));
             return $result;
         }
-
-        $rawLine = fgets($STDIN);
 
         # Analyzes new line if first char of line is '#' or '\n'
         if ($rawLine[0] == "#") {

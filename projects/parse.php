@@ -65,7 +65,8 @@ $instructions = array(
     33 => "BREAK");
 
 # !!!!
-$STDIN = fopen("tests/input", "r");
+#$STDIN = fopen("tests/input", "r");
+$STDIN = STDIN;
 
 # Main control structure
 # Parameter parsing

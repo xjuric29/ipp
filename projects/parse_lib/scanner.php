@@ -60,8 +60,9 @@ function scanner() {
         # Gets info about comment in middle of line
         $splitLine = explode("#", $rawLine);
         $words = preg_split("~\s+~", $splitLine[0]);   #Array like ("MOVE", "GF@counter", "string@")
-        # Top regex split also by "\n", it's append to array "" which causes errors
-        if (end($words) == "") array_pop($words); # unprofessional repair, maybe i see it in free time
+        # If line starts or ends with white chars, explode fills also "" to start or end
+        if (end($words) == "") array_pop($words);
+        if ($words[0] == "") array_shift($words);
 
         if (count($splitLine) > 1) $comments++;
         break;
@@ -78,8 +79,9 @@ function scanner() {
                 # Checking correct write of constant
                 if (preg_match("~^int@[+-]?[0-9]+$~", $word) ||
                     preg_match("~^bool@(true|false)$~", $word) ||
-                    !preg_match("~#|(\\$|\\[0-9]{0,2}(\p{L}|\p{M}|\p{S}|\p{P}\p{Z}|\p{C}| )|\\[0-9]{4,})|(\p{Z}|\p{C})~", $word)) {
-                    $token = array_merge(array(tokenConst), explode("@", $word));
+                    (preg_match("~^string@~", $word) &&
+                    !preg_match("~(\\\\[0-9]{0,2}($|\p{L}|\p{M}|\p{S}|\p{P}\p{Z}|\p{C}| )|\\\\[0-9]{4,})~u", $word))) {
+                    $token = array_merge(array(tokenConst), explode("@", $word, 2));
                     array_push($result, $token);
                     printLog("Scanner: constant\n");
                 }

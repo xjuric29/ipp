@@ -22,41 +22,9 @@
 
 #echo "a"."b" . "\n" . "4";
 
-$instructions = array(
-    0 => "MOVE",
-    1 => "CREATEFRAME",
-    2 => "PUSHFRAME",
-    3 => "POPFRAME",
-    4 => "DEFVAR",
-    5 => "CALL",
-    6 => "RETURN",
-    7 => "PUSHS",
-    8 => "POPS",
-    9 => "ADD",
-    10 => "SUB",
-    11 => "MUL",
-    12 => "IDIV",
-    13 => "LT",
-    14 => "GT",
-    15 => "EQ",
-    16 => "AND",
-    17 => "OR",
-    18 => "NOT",
-    19 => "INT2CHAR",
-    20 => "STRI2INT",
-    21 => "READ",
-    22 => "WRITE",
-    23 => "CONCAT",
-    24 => "STRLEN",
-    25 => "GETCHAR",
-    26 => "SETCHAR",
-    27 => "TYPE",
-    28 => "LABEL",
-    29 => "JUMP",
-    30 => "JUMPIFEQ",
-    31 => "JUMPIFNEQ",
-    # Debug instructions
-    32 => "DPRINT",
-    33 => "BREAK");
+$word = "string@jksaadlkf\\124\\12";
+echo $word, "\n";
+echo preg_match("~(\\\\[0-9]{0,2}($|\p{L}|\p{M}|\p{S}|\p{P}\p{Z}|\p{C}| )|\\\\[0-9]{4,})~u", $word);
 
-var_dump($instructions);
+
+#"~(\\[0-9]{0,2}($|\p{L}|\p{M}|\p{S}|\p{P}\p{Z}|\p{C}| )|\\[0-9]{4,})~u"

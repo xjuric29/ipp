@@ -1,7 +1,7 @@
 <?php
 /**
  * IPP 2018 project 1 - lexical analyzer part
- * @file scanner.php
+ * @file parse_lib/scanner.php
  * @author Jiri Jurica
  */
 

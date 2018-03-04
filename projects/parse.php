@@ -7,9 +7,10 @@
  */
 
 include 'parse_lib/scanner.php';
+include 'parse_lib/syntax.php';
 include 'parse_lib/others.php';
 
-# Global constants
+# Global constants and vars
 # Return codes
 const badParameter = 10;
 const inFileError = 11;
@@ -65,8 +66,8 @@ $instructions = array(
     33 => "BREAK");
 
 # !!!!
-#$STDIN = fopen("tests/input", "r");
-$STDIN = STDIN;
+$STDIN = fopen("tests/input", "r");
+#$STDIN = STDIN;
 
 # Main control structure
 # Parameter parsing
@@ -119,16 +120,9 @@ printLog("Verbose mode is on\n");
 $loc = 0;
 $comments = 0;
 
-$i = 0;
-while (true) {
-    $line = scanner();
-    echo "\n--- " . $i . " ---\n";
-    var_dump($line);
-    if ($line[0][0] == 6) break;
-    $i++;
-}
+syntaxer();
 
-echo $comments, "\n";
+echo $comments, $loc, "\n";
 
 #var_dump($argv);
 #var_dump($getOpts);

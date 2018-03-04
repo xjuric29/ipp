@@ -5,6 +5,9 @@
  * @author Jiri Jurica
  */
 
+/**Prints message on stderr if global var is set to true
+ * @param $message
+ */
 function printLog($message) {
     global $verbose;
     if ($verbose) fwrite(STDERR, $message);

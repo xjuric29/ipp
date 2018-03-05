@@ -49,11 +49,11 @@ function scanner() {
         }
 
         # Analyzes new line if first char of line is '#' or '\n'
-        if ($rawLine[0] == "#") {
+        if (preg_match("~^\s*#~", $rawLine)) {
             $comments++;
             continue;
         }
-        elseif ($rawLine == "\n") continue;
+        elseif (preg_match("~^\s*$~", $rawLine)) continue;
 
         # Gets info about comment in middle of line
         $splitLine = explode("#", $rawLine);

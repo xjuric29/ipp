@@ -1,0 +1,5 @@
+.IPPcode18
+JUMP $$MAIN
+LABEL $$MAIN
+CREATEFRAME
+WRITE string@Ahoj\010Sve'te\092"

@@ -1,0 +1,5 @@
+{
+  "datatypes_test.py::test_const_type1": true,
+  "datatypes_test.py::test_const_type2": true,
+  "datatypes_test.py::test_const_type3": true
+}

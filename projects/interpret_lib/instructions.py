@@ -4,6 +4,7 @@ import re
 
 # Defines ippcode18 data types
 class Var:
+    """Class for representing variable in ippcode18"""
     def __init__(self, arg_value, frames):
         if re.match(r'^(LF|TF|GF)@[a-zA-Z_\-$&%*][a-zA-Z0-9_\-$&%*]*$', arg_value):
             self.__frame, self.__name = arg_value.split('@')
@@ -13,12 +14,15 @@ class Var:
         self.__frames = frames
 
     def get_frame(self):
+        """Returns string with var frame"""
         return self.__frame
 
     def get_name(self):
+        """Returns string with var name"""
         return self.__name
 
     def define(self):
+        """Defines variable on relevant frame"""
         if self.__frame == 'GF':
             self.__frames.globalFrame[self.__name] = None
         elif self.__frame == 'LF':
@@ -27,31 +31,30 @@ class Var:
             self.__frames.get_frame()[self.__name] = None
 
     def set_value(self, value):
-        if self.__frame == 'GF':
+        """Sets value of defined var in frame"""
+        if self.__frame == 'GF' and self.__name in self.__frames.globalFrame:
             self.__frames.globalFrame[self.__name] = value
-        elif self.__frame == 'LF':
+        elif self.__frame == 'LF' and self.__name in self.__frames.get_local_frame():
             self.__frames.get_local_frame()[self.__name] = value
-        elif self.__frame == 'TF':
+        elif self.__frame == 'TF' and self.__name in self.__frames.get_frame():
             self.__frames.get_frame()[self.__name] = value
+        else:
+            exit(ExitCodes.runErrorMissingVar)
 
-    def get_value(self):    # Put access to var if is defined in frame. Does not check if is initialized or not
-        if self.__frame == 'GF':
-            try:
+    def get_value(self):
+        """Put access to var if is defined in frame. Does not check if is initialized or not"""
+        try:
+            if self.__frame == 'GF':
                 return self.__frames.globalFrame[self.__name]
-            except KeyError:
-                exit(ExitCodes.runErrorMissingVar)
-        elif self.__frame == 'LF':
-            try:
+            elif self.__frame == 'LF':
                 return self.__frames.get_local_frame()[self.__name]
-            except KeyError:
-                exit(ExitCodes.runErrorMissingVar)
-        elif self.__frame == 'TF':
-            try:
+            elif self.__frame == 'TF':
                 return self.__frames.get_frame()[self.__name]
-            except KeyError:
-                exit(ExitCodes.runErrorMissingVar)
+        except KeyError:
+            exit(ExitCodes.runErrorMissingVar)
 
-    def get_value_protected(self):  # If var contains None, program wil exit with error code
+    def get_value_protected(self):
+        """If var contains None, program wil exit with error code"""
         value = self.get_value()
 
         if value is None:
@@ -69,6 +72,7 @@ class SimpleType:  # Helping class
 
 
 class Const(SimpleType):
+    """Class for representing constant in ippcode18"""
     def __init__(self, type, value):
         if type == 'int' and re.match(r'^[+-]?[0-9]+$', value):
             self._value = int(value)
@@ -83,6 +87,7 @@ class Const(SimpleType):
             exit(ExitCodes.syntaxError)
 
     def __replace_escape_seq(self, value):
+        """For string value processing"""
         escapePattern = re.compile(r'(\\[0-9]{3})', re.UNICODE)
 
         parts = escapePattern.split(value)
@@ -98,6 +103,7 @@ class Const(SimpleType):
 
 
 class Label(SimpleType):
+    """Class for representing label in ippcode18"""
     def __init__(self, value):
         if re.match(r'^[a-zA-Z_\-$&%*][a-zA-Z0-9_\-$&%*]*$', value):
             self._value = value
@@ -106,6 +112,7 @@ class Label(SimpleType):
 
 
 class Type(SimpleType):
+    """Class for representing type in ippcode18"""
     def __init__(self, value):
         if value == 'int':
             self._value = int
@@ -119,6 +126,7 @@ class Type(SimpleType):
 
 # Instructions part
 class Instruction:
+    """Instruction class which contains data about operands and executing code"""
     def __init__(self, stack, frames, flow_control):
         self._instructionRequiredTypes = None  # Expects some list like [Var, [Const, Var], [Const, Var]]
         self._operands = None  # Checked final operands for executing
@@ -127,6 +135,7 @@ class Instruction:
         self._flowControl = flow_control
 
     def _check_operands(self, operand_list):
+        """Checks operands"""
         if len(operand_list) != len(self._instructionRequiredTypes):
             exit(ExitCodes.syntaxError)
 
@@ -147,10 +156,16 @@ class Instruction:
         self._operands = operand_list
 
     def _get_checked_value(self, entity):
+        """Method for secure getting value for operand with arbitrary type"""
         if isinstance(entity, Const):
             return entity.get_value()
         else:
             return entity.get_value_protected()
+
+    def debug(self):
+        print(self._operands)
+        for operand in self._operands:
+            print(operand.get_value())
 
 
 # Work with frames, calling functions
@@ -244,8 +259,8 @@ class RETURN(Instruction):
 
         try:
             self._flowControl.instructionCounter = positionStack.pop()
-        except KeyError:
-            exit(ExitCodes.semanticError)
+        except IndexError:
+            exit(ExitCodes.runErrorMissingValue)
 
 
 # Stack instructions
@@ -270,7 +285,7 @@ class POPS(Instruction):
     def exec(self):
         try:
             self._operands[0].set_value(self._stack.pop())
-        except KeyError:
+        except IndexError:
             exit(ExitCodes.runErrorMissingValue)
 
 
@@ -286,7 +301,7 @@ class ADD(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if isinstance(operand1, int) and isinstance(operand2, int):
+        if type(operand1) == int and type(operand2) == int:
             self._operands[0].set_value(operand1 + operand2)
         else:
             exit(ExitCodes.runErrorBadType)
@@ -303,7 +318,7 @@ class SUB(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if isinstance(operand1, int) and isinstance(operand2, int):
+        if type(operand1) == int and type(operand2) == int:
             self._operands[0].set_value(operand1 - operand2)
         else:
             exit(ExitCodes.runErrorBadType)
@@ -320,7 +335,7 @@ class MUL(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if isinstance(operand1, int) and isinstance(operand2, int):
+        if type(operand1) == int and type(operand2) == int:
             self._operands[0].set_value(operand1 * operand2)
         else:
             exit(ExitCodes.runErrorBadType)
@@ -337,7 +352,7 @@ class IDIV(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if isinstance(operand1, int) and isinstance(operand2, int):
+        if type(operand1) == int and type(operand2) == int:
             if operand2 == 0:
                 exit(ExitCodes.runErrorZeroDivision)
 
@@ -357,9 +372,7 @@ class LT(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if (isinstance(operand1, int) and isinstance(operand2, int)) or \
-                (isinstance(operand1, bool) and isinstance(operand2, bool) or
-                 (isinstance(operand1, str) and isinstance(operand2, str))):
+        if type(operand1) == type(operand2):
             self._operands[0].set_value(operand1 < operand2)
         else:
             exit(ExitCodes.runErrorBadType)
@@ -376,9 +389,7 @@ class GT(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if (isinstance(operand1, int) and isinstance(operand2, int)) or \
-                (isinstance(operand1, bool) and isinstance(operand2, bool) or
-                 (isinstance(operand1, str) and isinstance(operand2, str))):
+        if type(operand1) == type(operand2):
             self._operands[0].set_value(operand1 > operand2)
         else:
             exit(ExitCodes.runErrorBadType)
@@ -395,11 +406,11 @@ class EQ(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if (isinstance(operand1, int) and isinstance(operand2, int)) or \
-                (isinstance(operand1, bool) and isinstance(operand2, bool)):
-            self._operands[0].set_value(operand1 == operand2)
-        elif isinstance(operand1, str) and isinstance(operand2, str):
-            self._operands[0].set_value(len(operand1) == len(operand2))
+        if type(operand1) == type(operand2):
+            if type(operand1) == int or type(operand1) == bool:
+                self._operands[0].set_value(operand1 == operand2)
+            else:
+                self._operands[0].set_value(len(operand1) == len(operand2))
         else:
             exit(ExitCodes.runErrorBadType)
 
@@ -415,7 +426,7 @@ class AND(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if isinstance(operand1, bool) and isinstance(operand2, bool):
+        if type(operand1) == bool and type(operand2) == bool:
             self._operands[0].set_value(operand1 and operand2)
         else:
             exit(ExitCodes.runErrorBadType)
@@ -432,7 +443,7 @@ class OR(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if isinstance(operand1, bool) and isinstance(operand2, bool):
+        if type(operand1) == bool and type(operand2) == bool:
             self._operands[0].set_value(operand1 or operand2)
         else:
             exit(ExitCodes.runErrorBadType)
@@ -448,7 +459,7 @@ class NOT(Instruction):
     def exec(self):
         operand = self._get_checked_value(self._operands[1])
 
-        if isinstance(operand, bool):
+        if type(operand) == bool:
             self._operands[0].set_value(not operand)
         else:
             exit(ExitCodes.runErrorBadType)
@@ -464,12 +475,13 @@ class INT2CHAR(Instruction):
     def exec(self):
         operand = self._get_checked_value(self._operands[1])
 
-        try:
-            self._operands[0].set_value(chr(operand))
-        except TypeError:
+        if type(operand) == int:
+            try:
+               self._operands[0].set_value(chr(operand))
+            except ValueError:
+                exit(ExitCodes.runErrorBadStringOperation)
+        else:
             exit(ExitCodes.runErrorBadType)
-        except ValueError:
-            exit(ExitCodes.runErrorBadStringOperation)
 
 
 class STRI2INT(Instruction):
@@ -483,12 +495,12 @@ class STRI2INT(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if not isinstance(operand1, str) or not isinstance(operand2, int):
+        if type(operand1) != str or type(operand2) !=int:
             exit(ExitCodes.runErrorBadType)
 
         try:
             self._operands[0].set_value(ord(operand1[operand2]))
-        except KeyError:
+        except IndexError:
             exit(ExitCodes.runErrorBadStringOperation)
 
 
@@ -554,7 +566,7 @@ class CONCAT(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if not isinstance(operand1, str) or not isinstance(operand2, str):
+        if type(operand1) != str or type(operand2) != str:
             exit(ExitCodes.runErrorBadType)
 
         self._operands[0].set_value(operand1 + operand2)
@@ -570,7 +582,7 @@ class STRLEN(Instruction):
     def exec(self):
         operand = self._get_checked_value(self._operands[1])
 
-        if not isinstance(operand, str):
+        if type(operand) != str:
             exit(ExitCodes.runErrorBadType)
 
         self._operands[0].set_value(len(operand))
@@ -587,12 +599,12 @@ class GETCHAR(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if not isinstance(operand1, str) or not isinstance(operand2, int):
+        if type(operand1) != str or type(operand2) != int:
             exit(ExitCodes.runErrorBadType)
 
         try:
             self._operands[0].set_value(operand1[operand2])
-        except KeyError:
+        except IndexError:
             exit(ExitCodes.runErrorBadStringOperation)
 
 
@@ -608,17 +620,17 @@ class SETCHAR(Instruction):
         operand2 = self._get_checked_value(self._operands[2])
         value = self._operands[0].get_value_protected()
 
-        if not isinstance(operand1, int) or not isinstance(operand2, str) or not isinstance(value, str):
+        if type(operand1) != int or type(operand2) != str or type(value) != str:
             exit(ExitCodes.runErrorBadType)
 
-        if len(operand2) != 1:
+        if len(operand2) < 1:
             exit(ExitCodes.runErrorBadStringOperation)
 
         value = list(value)
 
         try:
-            value[operand1] = operand2
-        except KeyError:
+            value[operand1] = operand2[0]
+        except IndexError:
             exit(ExitCodes.runErrorBadStringOperation)
 
         self._operands[0].set_value(''.join(value))
@@ -633,15 +645,13 @@ class TYPE(Instruction):
         self._check_operands(operands_list)
 
     def exec(self):
-        value = self._get_checked_value(self._operands[1])
+        value = self._operands[1].get_value()
 
-        # Is necessary to have first if with bool, from another kind of reason is true and false instance of bool but
-        # also int!!
-        if isinstance(value, bool):
+        if type(value) == bool:
             self._operands[0].set_value('bool')
-        elif isinstance(value, int):
+        elif type(value) == int:
             self._operands[0].set_value('int')
-        elif isinstance(value, str):
+        elif type(value) == str:
             self._operands[0].set_value('string')
         else:
             self._operands[0].set_value('')
@@ -690,9 +700,9 @@ class JUMPIFEQ(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if (isinstance(operand1, int) and isinstance(operand2, int)) or \
-                (isinstance(operand1, bool) and isinstance(operand2, bool) or
-                 (isinstance(operand1, str) and isinstance(operand2, str))):
+        if (type(operand1) == int and type(operand2) == int) or \
+                (type(operand1) == bool and type(operand2) == bool) or \
+                (type(operand1) == str and type(operand2) == str):
             if operand1 == operand2:
                 try:
                     self._flowControl.instructionCounter = labelDict[self._operands[0].get_value()]
@@ -714,9 +724,9 @@ class JUMPIFNEQ(Instruction):
         operand1 = self._get_checked_value(self._operands[1])
         operand2 = self._get_checked_value(self._operands[2])
 
-        if (isinstance(operand1, int) and isinstance(operand2, int)) or \
-                (isinstance(operand1, bool) and isinstance(operand2, bool) or
-                 (isinstance(operand1, str) and isinstance(operand2, str))):
+        if (type(operand1) == int and type(operand2) == int) or \
+                (type(operand1) == bool and type(operand2) == bool) or \
+                (type(operand1) == str and type(operand2) == str):
             if operand1 != operand2:
                 try:
                     self._flowControl.instructionCounter = labelDict[self._operands[0].get_value()]
@@ -752,3 +762,15 @@ class BREAK(Instruction):
                                                                                  self._flowControl.instructionCounter,
                                                                                  self._flowControl.labelDict),
               file=sys.stderr)
+
+
+# Own helpful instruction
+class NOP(Instruction):
+    def __init__(self, operands_list, stack, frames, flow_control):
+        super().__init__(stack, frames, flow_control)
+
+        self._instructionRequiredTypes = []
+        self._check_operands(operands_list)
+
+    def exec(self):
+        pass

@@ -1,0 +1,6 @@
+.IPPcode18
+JUMP $$MAIN
+LABEL $$MAIN
+CREATEFRAME
+WRITE string@ahoj
+WRITE string@ahoj

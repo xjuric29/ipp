@@ -244,7 +244,7 @@ function syntaxer() {
                     exit(lexicalSyntaxError);
             }
 
-            printLog("Syntaxer: instruction " . $line[0][1] . "\n");
+            printLog("Syntaxer: instruction " . $instructions[$line[0][1]] . "\n");
         }
         # Another error
         else {

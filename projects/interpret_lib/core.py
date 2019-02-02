@@ -90,7 +90,7 @@ class Interpret:
             if self.args.vars:
                 self.__vars.add(self._frames.get_var_count())
 
-            self.__stati()
+        self.__stati()
 
     def __set_labels(self):
         """Loads all labels address and replaces all labels instruction to nop"""
@@ -112,9 +112,9 @@ class Interpret:
 
     def __stati(self):
         """Saves statistics information to given file"""
-        maxVars = max(self.__vars)
-
         if self.args.stats:
+            maxVars = max(self.__vars)
+
             with open(self.args.stats, 'w') as fp:
                 if self.args.insts and not self.args.vars:
                     print(str(self.__inst), file=fp)
